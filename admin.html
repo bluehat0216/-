@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>관리 페이지</title>
+<style>
+:root{--navy:#0a3a8c;--ink:#333;--muted:#777;--line:#e2e2e2;--ok:#1fb355;--red:#d33a3a}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif;color:var(--ink);background:#f6f7f9;font-size:14px;line-height:1.5}
+:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+button{font:inherit;cursor:pointer}
+.bar{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff}
+.bar .in{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar h1{font-size:16px;margin:0 auto 0 0;font-weight:700}
+.bar .st{font-size:12px;opacity:.9}
+.btn{border:1px solid #cfd3da;background:#fff;color:#222;padding:8px 14px;border-radius:3px}
+.btn:hover{background:#f0f3f8}
+.btn.pri{background:#fff;color:var(--navy);border-color:#fff;font-weight:700}
+.btn.danger{color:var(--red);border-color:#e7c3c3}
+.btn.sm{padding:4px 10px;font-size:13px}
+main{max-width:980px;margin:0 auto;padding:18px 16px 80px}
+.banner{background:#fff6e0;border:1px solid #f0d58a;padding:12px 14px;margin-bottom:14px}
+details.help{background:#fff;border:1px solid var(--line);padding:10px 14px;margin-bottom:14px}
+details.help summary{cursor:pointer;font-weight:700}
+details.help ol{margin:10px 0 0;padding-left:20px}
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:16px}
+.tabs button{background:none;border:0;padding:10px 18px;font-weight:700;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button.on{color:var(--navy);border-bottom-color:var(--navy)}
+.panel{background:#fff;border:1px solid var(--line);padding:16px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+input[type=text],input[type=number],input[type=search],select,textarea{font:inherit;padding:8px 10px;border:1px solid #c9ced6;background:#fff;width:100%;color:#222}
+textarea{min-height:110px;resize:vertical}
+.toolbar input,.toolbar select{width:auto;flex:1 1 180px}
+label{display:block;font-weight:700;margin:12px 0 4px}
+label small{font-weight:400;color:var(--muted)}
+.row{display:grid;grid-template-columns:64px 1fr auto auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:0}
+.th{width:64px;height:48px;object-fit:contain;background:#f4f4f4;border:1px solid #eee}
+.info b{display:block;word-break:break-word}
+.info small{color:var(--muted)}
+.stk{display:flex;align-items:center;gap:4px}
+.stk input{width:64px;text-align:center;padding:5px}
+.stk button{width:30px;height:30px;border:1px solid #c9ced6;background:#fff;border-radius:3px;font-size:16px;padding:0}
+.btns{display:flex;gap:6px}
+.empty{color:var(--muted);padding:26px 0;text-align:center}
+.catrow{display:flex;gap:6px;margin-bottom:8px}
+.catrow input{flex:1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.imgprev{display:flex;gap:12px;align-items:center;margin-top:6px}
+.imgprev img{width:120px;height:90px;object-fit:contain;background:#f4f4f4;border:1px solid #eee}
+dialog{border:0;padding:0;width:calc(100% - 24px);max-width:640px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dbody{padding:18px 20px;max-height:80vh;overflow:auto}
+.dfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--line);background:#fafafa}
+.note{color:var(--muted);font-size:13px;margin:4px 0 0}
+@media(max-width:640px){.row{grid-template-columns:56px 1fr;}.row .stk,.row .btns{grid-column:2}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <h1>관리 페이지</h1>
+  <span class="st" id="status"></span>
+  <button class="btn" id="loadBtn" type="button">파일 불러오기</button>
+  <button class="btn pri" id="saveBtn" type="button">data.json 저장</button>
+  <input type="file" id="loadFile" accept=".json,application/json" hidden>
+</div></div>
+
+<main>
+  <div class="banner" id="banner" hidden></div>
+
+  <details class="help">
+    <summary>수정한 내용을 사이트에 반영하는 방법</summary>
+    <ol>
+      <li>이 페이지에서 무기를 추가·수정합니다. 작업 내용은 이 브라우저에 임시로 자동 저장됩니다.</li>
+      <li>위의 <b>data.json 저장</b> 버튼을 눌러 파일을 내려받습니다.</li>
+      <li>GitHub 저장소에서 <b>Add file → Upload files</b>를 눌러 내려받은 <b>data.json</b>을 올리고 <b>Commit changes</b>를 누릅니다. 같은 이름이면 자동으로 덮어씁니다.</li>
+      <li>1~2분 뒤 사이트에 반영됩니다.</li>
+    </ol>
+  </details>
+
+  <div class="tabs" role="tablist">
+    <button type="button" data-tab="items" class="on">무기 목록</button>
+    <button type="button" data-tab="cats">무기 종류</button>
+    <button type="button" data-tab="settings">사이트 설정</button>
+  </div>
+
+  <section class="panel" id="tab-items">
+    <div class="toolbar">
+      <input type="search" id="aq" placeholder="이름으로 검색">
+      <select id="acat" aria-label="종류 필터"></select>
+      <button type="button" class="btn pri" id="addItem" style="background:var(--navy);color:#fff;border-color:var(--navy)">+ 무기 추가</button>
+    </div>
+    <div id="itemList"></div>
+  </section>
+
+  <section class="panel" id="tab-cats" hidden>
+    <p class="note" style="margin:0 0 12px">종류 이름을 바꾸면 해당 종류의 무기도 함께 바뀝니다. 순서는 사이트 메뉴에 표시되는 순서입니다.</p>
+    <div id="catList"></div>
+    <div class="catrow" style="margin-top:14px">
+      <input type="text" id="newCat" placeholder="새 종류 이름 (예: 소총)">
+      <button type="button" class="btn" id="addCat">추가</button>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-settings" hidden>
+    <label for="s_siteName">사이트 이름</label>
+    <input type="text" id="s_siteName" data-k="siteName">
+    <label for="s_pageTitle">페이지 제목 <small>(메뉴 아래 큰 제목)</small></label>
+    <input type="text" id="s_pageTitle" data-k="pageTitle">
+    <label for="s_intro">소개 문구</label>
+    <textarea id="s_intro" data-k="intro" style="min-height:70px"></textarea>
+    <label for="s_notice">구매 안내 <small>(파란 안내 상자. 비우면 표시되지 않습니다)</small></label>
+    <textarea id="s_notice" data-k="notice" style="min-height:70px"></textarea>
+    <label for="s_footer">하단 문구 <small>(문의 방법 등)</small></label>
+    <textarea id="s_footer" data-k="footer" style="min-height:70px"></textarea>
+    <div class="two">
+      <div>
+        <label for="s_cur">화폐 기호 <small>(예: $, €, 원)</small></label>
+        <input type="text" id="s_cur" data-k="currencySymbol">
+      </div>
+      <div>
+        <label for="s_curpos">기호 위치</label>
+        <select id="s_curpos"><option value="1">숫자 앞 ($ 900)</option><option value="0">숫자 뒤 (900원)</option></select>
+      </div>
+    </div>
+    <label>로고 이미지 <small>(없으면 사이트 이름 첫 글자가 표시됩니다)</small></label>
+    <div class="imgprev">
+      <img id="logoPrev" alt="">
+      <input type="file" id="logoFile" accept="image/*">
+      <button type="button" class="btn sm" id="logoDel">삭제</button>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <div class="dbody">
+    <h2 id="dlgTitle" style="margin:0 0 4px;font-size:18px">무기 추가</h2>
+    <label for="e_name">무기 이름</label>
+    <input type="text" id="e_name">
+    <div class="two">
+      <div><label for="e_cat">종류</label><select id="e_cat"></select></div>
+      <div><label for="e_spec">한 줄 정보 <small>(구경, 등급 등)</small></label><input type="text" id="e_spec"></div>
+    </div>
+    <div class="two">
+      <div><label for="e_price">가격 <small>(숫자만, 비우면 "가격 문의")</small></label><input type="number" id="e_price" min="0" step="any"></div>
+      <div><label for="e_stock">재고 <small>(0이면 품절)</small></label><input type="number" id="e_stock" min="0" step="1"></div>
+    </div>
+    <label for="e_desc">설명</label>
+    <textarea id="e_desc"></textarea>
+    <label>사진</label>
+    <div class="imgprev">
+      <img id="e_prev" alt="">
+      <div>
+        <input type="file" id="e_file" accept="image/*">
+        <button type="button" class="btn sm" id="e_imgDel" style="margin-top:6px">사진 삭제</button>
+        <p class="note">사진은 자동으로 줄여서 저장됩니다.</p>
+      </div>
+    </div>
+  </div>
+  <div class="dfoot">
+    <button type="button" class="btn" id="e_cancel">취소</button>
+    <button type="button" class="btn pri" id="e_save" style="background:var(--navy);color:#fff;border-color:var(--navy)">확인</button>
+  </div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PH = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#f4f4f4"/><text x="200" y="158" font-family="sans-serif" font-size="18" fill="#aaa" text-anchor="middle">사진 없음</text></svg>');
+const KEY = 'weaponshop-draft-v1';
+const uid = () => 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const DEFAULT = {
+  settings:{siteName:'내 무기 상점',pageTitle:'판매 중인 무기',intro:'원하는 무기를 검색하거나 종류별로 확인하세요.',notice:'',footer:'',currencySymbol:'$',currencyBefore:true,logo:''},
+  categories:['권총','소총','샷건'],
+  items:[]
+};
+let data = JSON.parse(JSON.stringify(DEFAULT));
+let dirty = false, draftFailed = false, editingId = null, editImage = '';
+
+function normalize(d){
+  const s = Object.assign({}, DEFAULT.settings, d.settings || {});
+  const categories = Array.isArray(d.categories) ? d.categories.map(String).filter(Boolean) : [];
+  const items = (Array.isArray(d.items) ? d.items : []).map(i => ({
+    id: i.id || uid(), name: i.name || '', category: i.category || '', spec: i.spec || '', desc: i.desc || '',
+    price: (i.price === '' || i.price == null) ? '' : Number(i.price),
+    stock: Math.max(0, parseInt(i.stock) || 0), image: i.image || ''
+  }));
+  return {settings:s, categories, items};
+}
+function money(n){
+  if (n === '' || n == null) return '가격 문의';
+  const t = Number(n).toLocaleString('ko-KR'), s = data.settings.currencySymbol || '';
+  return data.settings.currencyBefore ? s + ' ' + t : t + s;
+}
+function touch(){
+  dirty = true; draftFailed = false;
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { draftFailed = true; }
+  updateBar();
+}
+function updateBar(){
+  const kb = Math.round(new Blob([JSON.stringify(data)]).size / 1024);
+  const size = kb > 1024 ? (kb / 1024).toFixed(1) + 'MB' : kb + 'KB';
+  let t = `${data.items.length}개 · ${size}`;
+  if (dirty) t += ' · 저장 안 한 변경 있음';
+  if (draftFailed) t += ' · 임시 저장 실패(용량)';
+  $('#status').textContent = t;
+}
+function showBanner(msg){ $('#banner').innerHTML = msg; $('#banner').hidden = !msg; }
+
+/* ---------- 이미지 ---------- */
+function fileToDataURL(file, max, type, quality){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = rej;
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = rej;
+      img.onload = () => {
+        const sc = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * sc), h = Math.round(img.height * sc);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const x = c.getContext('2d');
+        if (type === 'image/jpeg'){ x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); }
+        x.drawImage(img, 0, 0, w, h);
+        res(c.toDataURL(type, quality));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- 탭 ---------- */
+document.querySelector('.tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  ['items', 'cats', 'settings'].forEach(t => $('#tab-' + t).hidden = (t !== b.dataset.tab));
+});
+
+/* ---------- 무기 목록 ---------- */
+function fillCatFilter(){
+  const cur = $('#acat').value;
+  $('#acat').innerHTML = '<option value="__all">모든 종류</option>' +
+    data.categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('') +
+    '<option value="__none">미분류</option>';
+  $('#acat').value = [...$('#acat').options].some(o => o.value === cur) ? cur : '__all';
+}
+function renderItems(){
+  const qs = $('#aq').value.trim().toLowerCase(), cf = $('#acat').value;
+  const list = data.items.filter(it =>
+    (cf === '__all' || (cf === '__none' ? !data.categories.includes(it.category) : it.category === cf)) &&
+    (!qs || [it.name, it.spec, it.desc].join(' ').toLowerCase().includes(qs)));
+  $('#itemList').innerHTML = list.length ? list.map(it => `
+    <div class="row" data-id="${esc(it.id)}">
+      <img class="th" src="${esc(it.image || PH)}" alt="">
+      <div class="info"><b>${esc(it.name || '(이름 없음)')}</b><small>${esc(it.category || '미분류')} / ${esc(money(it.price))}</small></div>
+      <div class="stk"><button type="button" data-act="dec" aria-label="재고 1 줄이기">−</button><input type="number" min="0" value="${it.stock}" data-act="stock" aria-label="재고"><button type="button" data-act="inc" aria-label="재고 1 늘리기">+</button></div>
+      <div class="btns"><button type="button" class="btn sm" data-act="edit">수정</button><button type="button" class="btn sm danger" data-act="del">삭제</button></div>
+    </div>`).join('')
+    : '<p class="empty">표시할 무기가 없습니다. "+ 무기 추가"를 눌러 시작하세요.</p>';
+  updateBar();
+}
+$('#aq').addEventListener('input', renderItems);
+$('#acat').addEventListener('change', renderItems);
+$('#itemList').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const row = b.closest('.row'), it = data.items.find(i => i.id === row.dataset.id); if (!it) return;
+  const act = b.dataset.act;
+  if (act === 'inc' || act === 'dec'){
+    it.stock = Math.max(0, it.stock + (act === 'inc' ? 1 : -1));
+    row.querySelector('input').value = it.stock; touch();
+  } else if (act === 'edit') openEditor(it.id);
+  else if (act === 'del'){
+    if (confirm(`"${it.name || '이름 없음'}"을(를) 삭제할까요?`)){
+      data.items = data.items.filter(i => i.id !== it.id); touch(); renderItems();
+    }
+  }
+});
+$('#itemList').addEventListener('change', e => {
+  if (e.target.dataset.act !== 'stock') return;
+  const it = data.items.find(i => i.id === e.target.closest('.row').dataset.id); if (!it) return;
+  it.stock = Math.max(0, parseInt(e.target.value) || 0);
+  e.target.value = it.stock; touch();
+});
+
+/* ---------- 무기 편집 창 ---------- */
+function openEditor(id){
+  editingId = id;
+  const it = id ? data.items.find(i => i.id === id) : {name:'', category:data.categories[0] || '', spec:'', desc:'', price:'', stock:1, image:''};
+  $('#dlgTitle').textContent = id ? '무기 수정' : '무기 추가';
+  $('#e_name').value = it.name; $('#e_spec').value = it.spec; $('#e_desc').value = it.desc;
+  $('#e_price').value = it.price; $('#e_stock').value = it.stock;
+  $('#e_cat').innerHTML = '<option value="">(미분류)</option>' + data.categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('#e_cat').value = data.categories.includes(it.category) ? it.category : '';
+  editImage = it.image; $('#e_prev').src = editImage || PH; $('#e_file').value = '';
+  $('#dlg').showModal(); $('#e_name').focus();
+}
+$('#addItem').addEventListener('click', () => openEditor(null));
+$('#e_cancel').addEventListener('click', () => $('#dlg').close());
+$('#e_imgDel').addEventListener('click', () => { editImage = ''; $('#e_prev').src = PH; $('#e_file').value = ''; });
+$('#e_file').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { editImage = await fileToDataURL(f, 700, 'image/jpeg', 0.82); $('#e_prev').src = editImage; }
+  catch (err) { alert('이미지를 읽지 못했습니다. 다른 사진으로 시도해 주세요.'); }
+});
+$('#e_save').addEventListener('click', () => {
+  const name = $('#e_name').value.trim();
+  if (!name){ alert('무기 이름을 입력해 주세요.'); $('#e_name').focus(); return; }
+  const p = $('#e_price').value.trim();
+  const rec = {
+    name, category: $('#e_cat').value, spec: $('#e_spec').value.trim(), desc: $('#e_desc').value.trim(),
+    price: p === '' ? '' : Math.max(0, Number(p)), stock: Math.max(0, parseInt($('#e_stock').value) || 0), image: editImage
+  };
+  if (editingId) Object.assign(data.items.find(i => i.id === editingId), rec);
+  else data.items.unshift(Object.assign({id: uid()}, rec));
+  touch(); renderItems(); $('#dlg').close();
+});
+
+/* ---------- 무기 종류 ---------- */
+function renderCats(){
+  $('#catList').innerHTML = data.categories.length ? data.categories.map((c, i) => `
+    <div class="catrow" data-i="${i}">
+      <input type="text" value="${esc(c)}" aria-label="종류 이름">
+      <button type="button" class="btn sm" data-act="up" aria-label="위로">↑</button>
+      <button type="button" class="btn sm" data-act="down" aria-label="아래로">↓</button>
+      <button type="button" class="btn sm danger" data-act="del">삭제</button>
+    </div>`).join('') : '<p class="empty">종류가 없습니다. 아래에서 추가하세요.</p>';
+  fillCatFilter(); updateBar();
+}
+$('#catList').addEventListener('change', e => {
+  if (e.target.tagName !== 'INPUT') return;
+  const i = +e.target.closest('.catrow').dataset.i, old = data.categories[i], nv = e.target.value.trim();
+  if (!nv || (data.categories.includes(nv) && nv !== old)){
+    alert(!nv ? '종류 이름을 비울 수 없습니다.' : '이미 있는 종류 이름입니다.'); e.target.value = old; return;
+  }
+  data.categories[i] = nv;
+  data.items.forEach(it => { if (it.category === old) it.category = nv; });
+  touch(); renderCats(); renderItems();
+});
+$('#catList').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const i = +b.closest('.catrow').dataset.i, c = data.categories[i], act = b.dataset.act;
+  if (act === 'up' && i > 0) [data.categories[i - 1], data.categories[i]] = [data.categories[i], data.categories[i - 1]];
+  else if (act === 'down' && i < data.categories.length - 1) [data.categories[i + 1], data.categories[i]] = [data.categories[i], data.categories[i + 1]];
+  else if (act === 'del'){
+    const n = data.items.filter(it => it.category === c).length;
+    if (!confirm(n ? `"${c}" 종류에 무기 ${n}개가 있습니다.\n종류를 삭제하면 이 무기들은 "미분류"가 됩니다. 삭제할까요?` : `"${c}" 종류를 삭제할까요?`)) return;
+    data.categories.splice(i, 1);
+    data.items.forEach(it => { if (it.category === c) it.category = ''; });
+  } else return;
+  touch(); renderCats(); renderItems();
+});
+function addCat(){
+  const v = $('#newCat').value.trim(); if (!v) return;
+  if (data.categories.includes(v)){ alert('이미 있는 종류 이름입니다.'); return; }
+  data.categories.push(v); $('#newCat').value = ''; touch(); renderCats(); renderItems();
+}
+$('#addCat').addEventListener('click', addCat);
+$('#newCat').addEventListener('keydown', e => { if (e.key === 'Enter') addCat(); });
+
+/* ---------- 사이트 설정 ---------- */
+function renderSettings(){
+  document.querySelectorAll('[data-k]').forEach(el => el.value = data.settings[el.dataset.k] ?? '');
+  $('#s_curpos').value = data.settings.currencyBefore ? '1' : '0';
+  $('#logoPrev').src = data.settings.logo || PH;
+}
+document.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { data.settings[el.dataset.k] = el.value; touch(); renderItems(); }));
+$('#s_curpos').addEventListener('change', e => { data.settings.currencyBefore = e.target.value === '1'; touch(); renderItems(); });
+$('#logoFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { data.settings.logo = await fileToDataURL(f, 160, 'image/png'); $('#logoPrev').src = data.settings.logo; touch(); }
+  catch (err) { alert('이미지를 읽지 못했습니다.'); }
+});
+$('#logoDel').addEventListener('click', () => { data.settings.logo = ''; $('#logoPrev').src = PH; $('#logoFile').value = ''; touch(); });
+
+/* ---------- 저장 / 불러오기 ---------- */
+$('#saveBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  dirty = false; try { localStorage.removeItem(KEY); } catch (e) {}
+  updateBar();
+  showBanner('<b>data.json을 내려받았습니다.</b> 이제 GitHub 저장소에 이 파일을 올려야 사이트에 반영됩니다. (위의 "반영하는 방법" 참고)');
+});
+$('#loadBtn').addEventListener('click', () => $('#loadFile').click());
+$('#loadFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (dirty && !confirm('저장하지 않은 변경 내용이 사라집니다. 계속할까요?')) { e.target.value = ''; return; }
+  try { data = normalize(JSON.parse(await f.text())); dirty = false; try { localStorage.removeItem(KEY); } catch (x) {} renderAll(); showBanner(''); }
+  catch (err) { alert('올바른 data.json 파일이 아닙니다.'); }
+  e.target.value = '';
+});
+window.addEventListener('beforeunload', e => { if (dirty){ e.preventDefault(); e.returnValue = ''; } });
+
+function renderAll(){ fillCatFilter(); renderItems(); renderCats(); renderSettings(); updateBar(); }
+
+/* ---------- 시작 ---------- */
+(async function start(){
+  let draft = null;
+  try { draft = localStorage.getItem(KEY); } catch (e) {}
+  if (draft){
+    if (confirm('저장하지 않은 작업 내용이 있습니다.\n이어서 작업할까요?\n\n[확인] 이어서 작업\n[취소] 현재 공개된 data.json 불러오기')){
+      try { data = normalize(JSON.parse(draft)); dirty = true; renderAll(); return; } catch (e) {}
+    }
+    try { localStorage.removeItem(KEY); } catch (e) {}
+  }
+  try {
+    const r = await fetch('data.json?v=' + Date.now());
+    if (!r.ok) throw 0;
+    data = normalize(await r.json());
+  } catch (e) {
+    data = normalize(DEFAULT);
+    showBanner('현재 공개된 data.json을 자동으로 불러오지 못했습니다. 이미 만든 data.json이 있다면 위의 <b>파일 불러오기</b>로 선택하세요. 처음 시작하는 경우라면 그대로 새로 만들면 됩니다.');
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
