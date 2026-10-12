@@ -56,9 +56,59 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .dfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--line);background:#fafafa}
 .note{color:var(--muted);font-size:13px;margin:4px 0 0}
 @media(max-width:640px){.row{grid-template-columns:56px 1fr;}.row .stk,.row .btns{grid-column:2}.two{grid-template-columns:1fr}}
+body.locked>*:not(#gate){display:none!important}
+#gate{position:fixed;inset:0;background:#f6f7f9;display:flex;align-items:center;justify-content:center;padding:16px;z-index:99}
+#gate .box{background:#fff;border:1px solid #e2e2e2;padding:26px;max-width:420px;width:100%}
+#gate h2{margin:0 0 12px;font-size:18px}
+#gate input{font:inherit;padding:10px;border:1px solid #c9ced6;width:100%;margin:8px 0}
+#gate button{font:inherit;padding:10px 16px;background:#0a3a8c;color:#fff;border:0;cursor:pointer;width:100%}
+#gate .msg{color:#d33a3a;font-size:13px;min-height:18px}
+#gate code{display:block;background:#f4f4f4;padding:8px;word-break:break-all;font-size:12px;margin:8px 0;user-select:all}
 </style>
 </head>
-<body>
+<body class="locked">
+<div id="gate"><div class="box">
+  <h2 id="gTitle">관리자 로그인</h2>
+  <p id="gDesc" style="margin:0;color:#666;font-size:13px">비밀번호를 입력하세요.</p>
+  <input type="password" id="gPw" autocomplete="current-password" placeholder="비밀번호">
+  <div class="msg" id="gMsg"></div>
+  <button type="button" id="gBtn">확인</button>
+  <div id="gOut"></div>
+</div></div>
+<script>
+(function(){
+  /* 비밀번호를 만든 뒤, 아래 따옴표 안에 암호값(해시)을 붙여 넣으세요. 비어 있으면 '비밀번호 만들기' 모드로 열립니다. */
+  const PW_HASH = "62f89c161f2292c65b78469320e44f12f60ac43d8b2def9e8ae1ec890c5254c6";
+  const $ = id => document.getElementById(id);
+  async function sha(t){
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('weapon-shop|' + t));
+    return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+  function unlock(){ document.body.classList.remove('locked'); $('gate').remove(); }
+  try { if (PW_HASH && sessionStorage.getItem('adm_ok') === PW_HASH) { unlock(); return; } } catch(e){}
+  if (!PW_HASH){
+    $('gTitle').textContent = '비밀번호 만들기';
+    $('gDesc').textContent = '사용할 비밀번호를 입력하고 버튼을 누르면 암호값이 나옵니다. 그 값을 admin.html 파일에 넣어야 잠금이 적용됩니다.';
+    $('gBtn').textContent = '암호값 만들기';
+  }
+  async function go(){
+    const v = $('gPw').value;
+    if (!v) return;
+    const h = await sha(v);
+    if (!PW_HASH){
+      if (v.length < 8){ $('gMsg').textContent = '비밀번호는 8자 이상으로 정하세요.'; return; }
+      $('gMsg').textContent = '';
+      $('gOut').innerHTML = '<p style="font-size:13px">아래 한 줄을 복사해서, admin.html의 <b>const PW_HASH = "";</b> 부분을 통째로 바꾸세요.</p><code>const PW_HASH = "' + h + '";</code>';
+      return;
+    }
+    if (h === PW_HASH){ try { sessionStorage.setItem('adm_ok', h); } catch(e){} unlock(); }
+    else { $('gMsg').textContent = '비밀번호가 맞지 않습니다.'; $('gPw').value = ''; }
+  }
+  $('gBtn').addEventListener('click', go);
+  $('gPw').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+})();
+</script>
+
 <div class="bar"><div class="in">
   <h1>관리 페이지</h1>
   <span class="st" id="status"></span>
