@@ -35,9 +35,11 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--rule);
 .notice{margin:18px 0 0;padding:12px 16px;border-left:3px solid var(--accent);background:var(--notice-bg);color:var(--nav);white-space:pre-line}
 
 .tools{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:36px 0 24px}
-.tools input{flex:1 1 260px;max-width:420px;font:inherit;padding:10px 14px;border:1px solid var(--input-line);background:var(--bg);color:var(--nav)}
-.tools input:focus{border-color:var(--accent);outline:none}
+.tools input[type=search]{flex:1 1 260px;max-width:420px;font:inherit;padding:10px 14px;border:1px solid var(--input-line);background:var(--bg);color:var(--nav)}
+.tools input[type=search]:focus{border-color:var(--accent);outline:none}
 .count{color:var(--muted);font-size:13px}
+.sortopt{display:inline-flex;align-items:center;gap:6px;color:var(--nav);cursor:pointer;user-select:none}
+.sortopt input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
 
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;padding:0 0 70px}
 .card{display:block;width:100%;text-align:center;background:var(--card-bg);border:1px solid var(--card-line);padding:0 20px 24px;cursor:pointer;font:inherit;color:inherit}
@@ -88,6 +90,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;paddin
 
   <div class="tools">
     <input id="search" type="search" placeholder="무기 이름으로 검색" aria-label="무기 검색" autocomplete="off">
+    <label class="sortopt"><input type="checkbox" id="stockFirst" checked> 재고 있는 상품 먼저</label>
     <span class="count" id="count"></span>
   </div>
 
@@ -156,6 +159,7 @@ function render(){
     (cat === 'all' || it.category === cat) &&
     words.every(w => [it.name, it.category, it.spec, it.desc].join(' ').toLowerCase().includes(w))
   );
+  if ($('#stockFirst').checked) list.sort((a, b) => (a.stock > 0 ? 0 : 1) - (b.stock > 0 ? 0 : 1));
   $('#count').textContent = `${list.length}개`;
   $('#grid').innerHTML = list.length ? list.map(it => `
     <button type="button" class="card${it.stock > 0 ? '' : ' out'}" data-id="${esc(it.id)}">
@@ -201,6 +205,7 @@ $('#grid').addEventListener('click', e => {
   const c = e.target.closest('.card'); if (c) openItem(c.dataset.id);
 });
 $('#search').addEventListener('input', e => { q = e.target.value; render(); });
+$('#stockFirst').addEventListener('change', render);
 $('#dlg').addEventListener('click', e => {
   if (e.target.id === 'dlg' || e.target.closest('.close')) e.currentTarget.close();
 });
